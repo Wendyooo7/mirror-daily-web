@@ -8,6 +8,7 @@ import { IMAGE_PATH } from '@/constants/default-path'
 import { filterPostsByTag } from '@/utils/topic'
 
 type Tag = NonNullable<NonNullable<GetTopicBasicInfoQuery['topic']>['tags']>[0]
+type ValidGroupTag = GroupTag & { tagId: NonNullable<GroupTag['tagId']> }
 
 type Props = {
   slug: string
@@ -49,22 +50,20 @@ export default async function GroupTypeListing({
   }
 
   const validGroupTags = Array.isArray(groupTags)
-    ? groupTags.filter((gt) => Boolean(gt?.tagId))
+    ? groupTags.filter((gt): gt is ValidGroupTag => Boolean(gt?.tagId))
     : []
 
   const groupElements =
     validGroupTags.length > 0
       ? validGroupTags.map((gt) => {
-          const matchedTag = tags.find(
-            (tag) => String(tag.id) === String(gt.tagId)
-          )
+          const matchedTag = tags.find((tag) => tag.id === gt.tagId)
           const groupName = gt.text?.trim() || matchedTag?.name || ''
 
           return (
             <List
-              key={gt.tagId!}
+              key={gt.tagId}
               groupName={groupName}
-              posts={filterPostsByTag(posts, { id: String(gt.tagId) })}
+              posts={filterPostsByTag(posts, { id: gt.tagId })}
             />
           )
         })
